@@ -3,7 +3,7 @@
  * Update API_BASE to your Render/Railway backend URL before deploying
  */
 
-const API_BASE = "https://YOUR-BACKEND.onrender.com/api";
+const API_BASE = "https://farmers-connect-sn3y.onrender.com";
 // DEV: const API_BASE = "http://localhost:5000/api";
 
 /* ── Fetch wrapper ───────────────────────────────── */
