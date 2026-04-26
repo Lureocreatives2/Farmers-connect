@@ -115,7 +115,7 @@ function initLayout(activePage = "") {
       </div>
     </div>
     <div class="footer__bottom">
-      <div class="footer__credit">© 2024 <strong>Farmers Connect</strong> · Empowering Nigerian Agriculture</div>
+      <div class="footer__credit">© 2026 <strong>Farmers Connect</strong> · Empowering Nigerian Agriculture</div>
       <div class="footer__designer">Designed & Built by <span>Opeyemi Adeshina</span></div>
     </div>
   </footer>`;
