@@ -3,7 +3,7 @@
  * Update API_BASE to your Render/Railway backend URL before deploying
  */
 
-const API_BASE = "https://farmers-connect-sn3y.onrender.com/api";
+const API_BASE = "https://YOUR-BACKEND.onrender.com/api";
 // DEV: const API_BASE = "http://localhost:5000/api";
 
 /* ── Fetch wrapper ───────────────────────────────── */
@@ -115,7 +115,7 @@ function initLayout(activePage = "") {
       </div>
     </div>
     <div class="footer__bottom">
-      <div class="footer__credit">© 2024 <strong>Farmers Connect</strong> · Empowering Nigerian Agriculture</div>
+      <div class="footer__credit">© 2026 <strong>Farmers Connect</strong> · Empowering Nigerian Agriculture</div>
       <div class="footer__designer">Designed & Built by <span>Opeyemi Adeshina</span></div>
     </div>
   </footer>`;
