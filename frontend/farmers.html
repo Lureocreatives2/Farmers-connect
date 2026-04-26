@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Farmers — Farmers Connect</title>
+  <meta name="description" content="Meet verified farmers on Farmers Connect from across all 36 Nigerian states." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .farmers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.4rem;
+    }
+
+    .farmer-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: 1.75rem 1.5rem;
+      transition: all var(--t);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .farmer-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--forest-500), var(--ochre-400));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--t);
+    }
+    .farmer-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .farmer-card:hover::before { transform: scaleX(1); }
+
+    .farmer-card__avatar {
+      width: 66px; height: 66px;
+      border-radius: var(--r-lg);
+      background: linear-gradient(135deg, var(--forest-600), var(--ochre-500));
+      color: var(--white);
+      font-family: var(--font-display);
+      font-size: 1.6rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .farmer-card__name  { font-size: 1.05rem; font-weight: 700; margin-bottom: .2rem; }
+    .farmer-card__farm  { font-size: .875rem; color: var(--forest-600); font-weight: 500; margin-bottom: .5rem; }
+    .farmer-card__state { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .3rem; margin-bottom: 1rem; }
+
+    .farmer-card__footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: .9rem; border-top: 1px solid var(--parch-200);
+    }
+    .farmer-card__count {
+      font-size: .78rem; font-weight: 600;
+      background: var(--forest-50);
+      color: var(--forest-700);
+      padding: .25rem .7rem; border-radius: var(--r-pill);
+    }
+    .farmer-card__verified {
+      font-size: .7rem; font-weight: 700;
+      color: var(--forest-600); display: flex; align-items: center; gap: .25rem;
+    }
+
+    /* State filter tabs */
+    .state-tabs {
+      display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 2rem;
+    }
+    .state-tab {
+      background: var(--white); border: 1.5px solid var(--border);
+      color: var(--ink-3); border-radius: var(--r-pill);
+      padding: .3rem .9rem; font-size: .78rem; font-weight: 500;
+      cursor: pointer; transition: all var(--t);
+    }
+    .state-tab:hover { border-color: var(--forest-400); color: var(--forest-600); }
+    .state-tab.active { background: var(--forest-700); border-color: var(--forest-700); color: var(--white); }
+
+    /* Banner */
+    .join-banner {
+      background: linear-gradient(135deg, var(--forest-950), var(--forest-800));
+      border-radius: var(--r-xl); padding: 3rem 2.5rem;
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 2rem; align-items: center; margin-top: 4rem;
+    }
+    @media(max-width:600px) { .join-banner { grid-template-columns: 1fr; text-align: center; } }
+    .join-banner h2 { color: var(--white); margin-bottom: .5rem; }
+    .join-banner p  { color: rgba(255,255,255,.65); font-size: .95rem; }
+  </style>
+</head>
+<body>
+  <script src="js/api.js"></script>
+
+  <div class="page-hero">
+    <div class="page-hero__inner">
+      <div class="eyebrow">🧑‍🌾 Verified Producers</div>
+      <h1>Meet Our Farmers</h1>
+      <p>Real people, real farms, real produce — from every corner of Nigeria</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+
+      <!-- Top controls -->
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.75rem">
+        <div class="section-head" style="margin:0">
+          <h2>Active Farmers</h2>
+          <div class="section-divider"></div>
+        </div>
+        <div class="search-bar" style="max-width:300px">
+          <input type="text" id="farmerSearch" placeholder="Search name, farm or state…" oninput="filterFarmers(this.value)" />
+          <button>Search</button>
+        </div>
+      </div>
+
+      <!-- State quick-filter -->
+      <div class="state-tabs" id="stateTabs">
+        <button class="state-tab active" data-state="" onclick="filterByState(this)">All States</button>
+        <button class="state-tab" data-state="Lagos"    onclick="filterByState(this)">Lagos</button>
+        <button class="state-tab" data-state="Kano"     onclick="filterByState(this)">Kano</button>
+        <button class="state-tab" data-state="Oyo"      onclick="filterByState(this)">Oyo</button>
+        <button class="state-tab" data-state="Anambra"  onclick="filterByState(this)">Anambra</button>
+        <button class="state-tab" data-state="Kaduna"   onclick="filterByState(this)">Kaduna</button>
+        <button class="state-tab" data-state="Enugu"    onclick="filterByState(this)">Enugu</button>
+        <button class="state-tab" data-state="Rivers"   onclick="filterByState(this)">Rivers</button>
+        <button class="state-tab" data-state="Katsina"  onclick="filterByState(this)">Katsina</button>
+      </div>
+
+      <!-- Grid -->
+      <div class="farmers-grid" id="farmerGrid"></div>
+
+      <!-- Join banner -->
+      <div class="join-banner">
+        <div>
+          <h2>Are You a Farmer?</h2>
+          <p>Register your farm for free and join hundreds of farmers already connecting with buyers across Nigeria.</p>
+        </div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <a href="register-farmer.html" class="btn btn--terra btn--lg">Register Farm</a>
+          <a href="list-product.html"    class="btn btn--ghost-light btn--lg">List Produce</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    initLayout("farmers");
+
+    // Sample data — replace with live API call once GET /api/farmers (list all) is added to backend
+    const ALL_FARMERS = [
+      { name:"Emeka Okafor",    farm:"Okafor Green Farms",      state:"Anambra", products:6,  verified:true  },
+      { name:"Fatima Aliyu",    farm:"Aliyu Agro Estate",        state:"Kano",    products:4,  verified:true  },
+      { name:"Bola Adeyemi",    farm:"Adeyemi Family Farm",      state:"Oyo",     products:8,  verified:false },
+      { name:"Chukwudi Nwosu",  farm:"Nwosu Organic Farms",      state:"Enugu",   products:3,  verified:true  },
+      { name:"Aisha Mohammed",  farm:"Sahel Fresh Produce",      state:"Kaduna",  products:5,  verified:false },
+      { name:"Tunde Fashola",   farm:"Fashola Agri Hub",         state:"Lagos",   products:7,  verified:true  },
+      { name:"Grace Ezeh",      farm:"Ezeh Garden & Nursery",    state:"Imo",     products:4,  verified:false },
+      { name:"Sule Garba",      farm:"Garba Livestock Ranch",    state:"Katsina", products:2,  verified:true  },
+      { name:"Ngozi Eze",       farm:"Eze Tuber Farm",           state:"Anambra", products:5,  verified:false },
+      { name:"Ibrahim Bello",   farm:"Bello Rice & Grains",      state:"Niger",   products:3,  verified:true  },
+      { name:"Chioma Obi",      farm:"Obi Poultry & Dairy",      state:"Enugu",   products:6,  verified:false },
+      { name:"Aminu Dankabo",   farm:"Dankabo Fresh Market",     state:"Kano",    products:9,  verified:true  },
+      { name:"Seun Ajayi",      farm:"Ajayi Organic Co.",        state:"Oyo",     products:4,  verified:true  },
+      { name:"Mama Nkechi",     farm:"Nkechi's Root Crops",      state:"Rivers",  products:3,  verified:false },
+      { name:"Aliyu Musa",      farm:"Musa Mixed Farming",       state:"Kaduna",  products:5,  verified:true  },
+      { name:"Folake Balogun",  farm:"Balogun Greenhouse",       state:"Lagos",   products:7,  verified:true  },
+    ];
+
+    let displayList = [...ALL_FARMERS];
+    let activeState = "";
+    let searchTerm  = "";
+
+    function renderFarmers(list) {
+      const grid = document.getElementById("farmerGrid");
+      if (!list.length) {
+        grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+          <div class="empty__icon">🌱</div>
+          <h3>No farmers found</h3>
+          <p>Try a different name or state.</p>
+        </div>`;
+        return;
+      }
+      grid.innerHTML = list.map(f => {
+        const initials = f.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+        return `
+          <div class="farmer-card">
+            <div class="farmer-card__avatar">${initials}</div>
+            <div class="farmer-card__name">${f.name}</div>
+            <div class="farmer-card__farm">🏡 ${f.farm}</div>
+            <div class="farmer-card__state">📍 ${f.state} State</div>
+            <div class="farmer-card__footer">
+              <span class="farmer-card__count">${f.products} product${f.products !== 1 ? "s" : ""}</span>
+              ${f.verified ? `<span class="farmer-card__verified">✓ Verified</span>` : ""}
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    function applyFilters() {
+      displayList = ALL_FARMERS.filter(f => {
+        const matchState  = !activeState || f.state === activeState;
+        const matchSearch = !searchTerm  ||
+          f.name.toLowerCase().includes(searchTerm) ||
+          f.farm.toLowerCase().includes(searchTerm) ||
+          f.state.toLowerCase().includes(searchTerm);
+        return matchState && matchSearch;
+      });
+      renderFarmers(displayList);
+    }
+
+    function filterFarmers(q) {
+      searchTerm = q.toLowerCase().trim();
+      applyFilters();
+    }
+
+    function filterByState(el) {
+      document.querySelectorAll(".state-tab").forEach(t => t.classList.remove("active"));
+      el.classList.add("active");
+      activeState = el.dataset.state;
+      applyFilters();
+    }
+
+    renderFarmers(ALL_FARMERS);
+  </script>
+</body>
+</html>

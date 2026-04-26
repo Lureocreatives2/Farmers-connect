@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Users ────────────────────────────────────────────────
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String   @unique
+  role      Role     @default(BUYER)
+  createdAt DateTime @default(now())
+  farmer    Farmer?
+
+  @@map("users")
+}
+
+// ── Farmers ──────────────────────────────────────────────
+model Farmer {
+  id        String    @id @default(uuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  farmName  String
+  state     String
+  verified  Boolean   @default(false)
+  products  Product[]
+  createdAt DateTime  @default(now())
+
+  @@map("farmers")
+}
+
+// ── Products ─────────────────────────────────────────────
+model Product {
+  id          String        @id @default(uuid())
+  farmerId    String
+  farmer      Farmer        @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  name        String
+  category    Category
+  price       Float
+  unit        String
+  description String
+  imageUrl    String
+  available   Boolean       @default(true)
+  status      ProductStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("products")
+}
+
+// ── Enums ────────────────────────────────────────────────
+enum Role {
+  FARMER
+  BUYER
+}
+
+enum Category {
+  GRAINS
+  VEGETABLES
+  FRUITS
+  TUBERS
+  LEGUMES
+  LIVESTOCK
+  DAIRY
+  OTHER
+}
+
+enum ProductStatus {
+  PENDING   // Newly listed — awaiting admin review
+  APPROVED  // Live and visible to buyers
+  REJECTED  // Declined — hidden from buyers
+  FLAGGED   // Reported — under review
+}

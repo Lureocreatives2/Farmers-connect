@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farmers Connect — Fresh From Nigerian Farms</title>
+  <meta name="description" content="Nigeria's trusted marketplace connecting farmers directly with buyers. No middlemen." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── Hero ─────────────────────────────────── */
+    .hero {
+      background: var(--forest-950);
+      min-height: calc(100vh - var(--nav-h));
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    @media(max-width:900px) { .hero { grid-template-columns: 1fr; min-height: auto; } }
+
+    .hero__bg-pattern {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        radial-gradient(circle at 20% 80%, rgba(58,138,58,.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(204,90,42,.1) 0%, transparent 50%);
+    }
+    .hero__grid-lines {
+      position: absolute; inset: 0; pointer-events: none; opacity: .04;
+      background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .hero__left {
+      padding: 5rem 3rem 5rem 0;
+      position: relative; z-index: 1;
+    }
+    @media(max-width:900px) { .hero__left { padding: 4rem 1.5rem 2rem; text-align: center; } }
+
+    .hero__title {
+      font-size: clamp(2.6rem, 5.5vw, 4rem);
+      font-weight: 800; color: var(--white);
+      line-height: 1.08; letter-spacing: -.03em;
+      margin-bottom: 1.25rem;
+    }
+    .hero__title em { color: var(--ochre-300); font-style: normal; display: block; }
+    .hero__title .line-terra { color: var(--terra-300); font-style: normal; }
+
+    .hero__sub {
+      font-size: 1.1rem; color: rgba(255,255,255,.65);
+      max-width: 480px; line-height: 1.75; margin-bottom: 2.25rem;
+    }
+    @media(max-width:900px) { .hero__sub { margin-left: auto; margin-right: auto; } }
+
+    .hero__btns {
+      display: flex; gap: .85rem; flex-wrap: wrap;
+    }
+    @media(max-width:900px) { .hero__btns { justify-content: center; } }
+
+    .hero__trust {
+      display: flex; gap: 2rem; margin-top: 3rem; flex-wrap: wrap;
+    }
+    @media(max-width:900px) { .hero__trust { justify-content: center; } }
+    .trust-stat__num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 800; color: var(--ochre-300); line-height: 1; }
+    .trust-stat__label { font-size: .75rem; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .7px; margin-top: .15rem; }
+
+    /* Hero right — mosaic image grid */
+    .hero__right {
+      height: 100%; min-height: 500px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: .75rem; padding: 2rem 0 2rem 1.5rem;
+      position: relative; z-index: 1;
+    }
+    @media(max-width:900px) { .hero__right { display: none; } }
+
+    .hero__mosaic-cell {
+      border-radius: var(--r-lg); overflow: hidden;
+      background: rgba(255,255,255,.06);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 4rem;
+      border: 1px solid rgba(255,255,255,.08);
+      transition: transform var(--t);
+    }
+    .hero__mosaic-cell:hover { transform: scale(1.02); }
+    .hero__mosaic-cell--tall { grid-row: span 2; font-size: 5rem; }
+    .hero__mosaic-cell--green { background: rgba(58,138,58,.15); }
+    .hero__mosaic-cell--terra { background: rgba(204,90,42,.12); }
+    .hero__mosaic-cell--ochre { background: rgba(200,148,0,.1); }
+
+    /* ── How it works ──────────────────────────── */
+    .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1.5rem; }
+    .how-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-xl); padding: 2rem 1.5rem;
+      position: relative; overflow: hidden;
+      transition: transform var(--t), box-shadow var(--t);
+    }
+    .how-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .how-card__num {
+      font-family: var(--font-display); font-size: 5rem; font-weight: 800;
+      color: var(--forest-100); position: absolute; top: -1rem; right: 1rem;
+      line-height: 1; pointer-events: none;
+    }
+    .how-card__icon { font-size: 2rem; margin-bottom: 1rem; }
+    .how-card__title { font-size: 1.05rem; font-weight: 700; margin-bottom: .5rem; }
+    .how-card__text  { font-size: .875rem; color: var(--ink-3); line-height: 1.75; }
+
+    /* ── Categories ────────────────────────────── */
+    .cat-strip { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .cat-pill {
+      display: flex; align-items: center; gap: .5rem;
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--r-pill); padding: .55rem 1.1rem;
+      font-size: .85rem; font-weight: 600; color: var(--ink-2);
+      cursor: pointer; transition: all var(--t);
+      box-shadow: var(--shadow-xs);
+    }
+    .cat-pill:hover { border-color: var(--forest-400); color: var(--forest-700); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .cat-pill span { font-size: 1.1rem; }
+
+    /* ── CTA band ──────────────────────────────── */
+    .cta-band {
+      background: linear-gradient(135deg, var(--terra-600) 0%, var(--terra-500) 50%, var(--ochre-500) 100%);
+      border-radius: var(--r-xl); padding: 3.5rem 2.5rem;
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 2rem; align-items: center;
+    }
+    @media(max-width:600px) { .cta-band { grid-template-columns: 1fr; text-align: center; } }
+    .cta-band h2 { color: var(--white); font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: .5rem; }
+    .cta-band p  { color: rgba(255,255,255,.75); font-size: .95rem; }
+
+    /* ── Testimonial band ──────────────────────── */
+    .testimonial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 1.25rem; }
+    .testimonial-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-xl); padding: 1.75rem;
+      box-shadow: var(--shadow-xs);
+    }
+    .testimonial-card__quote { font-size: .95rem; color: var(--ink-2); line-height: 1.8; margin-bottom: 1.25rem; font-style: italic; }
+    .testimonial-card__quote::before { content: """; font-family: var(--font-display); font-size: 3rem; color: var(--forest-100); display: block; line-height: .5; margin-bottom: .5rem; }
+    .testimonial-card__author { display: flex; align-items: center; gap: .75rem; }
+    .testimonial-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--forest-100); color: var(--forest-700); font-family: var(--font-display); font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .testimonial-name  { font-weight: 700; font-size: .9rem; }
+    .testimonial-role  { font-size: .77rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <script src="js/api.js"></script>
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="hero__bg-pattern"></div>
+    <div class="hero__grid-lines"></div>
+    <div class="container" style="display:contents">
+      <div class="hero__left">
+        <div class="eyebrow">🇳🇬 Nigeria's Farm Marketplace</div>
+        <h1 class="hero__title">
+          Fresh Produce
+          <em>Direct From</em>
+          <span class="line-terra">Nigerian Farms</span>
+        </h1>
+        <p class="hero__sub">
+          Connect directly with verified farmers across all 36 states.
+          No middlemen. Better prices. Fresher food on your table.
+        </p>
+        <div class="hero__btns">
+          <a href="shop.html" class="btn btn--primary btn--lg">Browse Produce →</a>
+          <a href="register-farmer.html" class="btn btn--ghost-light btn--lg">Join as Farmer</a>
+        </div>
+        <div class="hero__trust">
+          <div class="trust-stat"><div class="trust-stat__num">500+</div><div class="trust-stat__label">Active Farmers</div></div>
+          <div class="trust-stat"><div class="trust-stat__num">36</div><div class="trust-stat__label">States</div></div>
+          <div class="trust-stat"><div class="trust-stat__num">2k+</div><div class="trust-stat__label">Listings</div></div>
+          <div class="trust-stat"><div class="trust-stat__num">0%</div><div class="trust-stat__label">Commission</div></div>
+        </div>
+      </div>
+      <div class="hero__right">
+        <div class="hero__mosaic-cell hero__mosaic-cell--tall hero__mosaic-cell--green">🌽</div>
+        <div class="hero__mosaic-cell hero__mosaic-cell--terra">🍅</div>
+        <div class="hero__mosaic-cell hero__mosaic-cell--ochre">🍠</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Category strip ── -->
+  <section class="section" style="background:var(--white);padding:2rem 0;border-bottom:1px solid var(--border)">
+    <div class="container">
+      <div class="cat-strip">
+        <div class="cat-pill" onclick="window.location='shop.html?category=GRAINS'"><span>🌾</span> Grains</div>
+        <div class="cat-pill" onclick="window.location='shop.html?category=VEGETABLES'"><span>🥦</span> Vegetables</div>
+        <div class="cat-pill" onclick="window.location='shop.html?category=FRUITS'"><span>🍊</span> Fruits</div>
+        <div class="cat-pill" onclick="window.location='shop.html?category=TUBERS'"><span>🍠</span> Tubers</div>
+        <div class="cat-pill" onclick="window.location='shop.html?category=LEGUMES'"><span>🫘</span> Legumes</div>
+        <div class="cat-pill" onclick="window.location='shop.html?category=LIVESTOCK'"><span>🐄</span> Livestock</div>
+        <div class="cat-pill" onclick="window.location='shop.html?category=DAIRY'"><span>🥛</span> Dairy</div>
+        <div class="cat-pill" onclick="window.location='shop.html'"><span>📦</span> View All</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Fresh listings ── -->
+  <section class="section" style="background:var(--parch-200)">
+    <div class="container">
+      <div class="section-head" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem">
+        <div>
+          <div class="eyebrow" style="background:var(--forest-50);border-color:var(--forest-200,#a8d8a8);color:var(--forest-700)">🌿 Just Listed</div>
+          <h2>Fresh From the Farm</h2>
+          <div class="section-divider"></div>
+        </div>
+        <a href="shop.html" class="btn btn--outline btn--sm">View all produce →</a>
+      </div>
+      <div class="products-grid" id="featuredGrid"></div>
+    </div>
+  </section>
+
+  <!-- ── How it works ── -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head section-head--center">
+        <div class="eyebrow" style="background:var(--terra-50);border-color:var(--terra-200,#f5c0a0);color:var(--terra-600)">⚡ Simple Process</div>
+        <h2>How Farmers Connect Works</h2>
+        <div class="section-divider" style="margin:auto;display:block;width:48px"></div>
+      </div>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-card__num">1</div>
+          <div class="how-card__icon">🔍</div>
+          <div class="how-card__title">Browse Listings</div>
+          <div class="how-card__text">Search by product, category, or state. Filter to find exactly what you're looking for across Nigeria.</div>
+        </div>
+        <div class="how-card">
+          <div class="how-card__num">2</div>
+          <div class="how-card__icon">📋</div>
+          <div class="how-card__title">View Details</div>
+          <div class="how-card__text">See full product info, pricing per unit, location, and the farmer's profile and farm name.</div>
+        </div>
+        <div class="how-card">
+          <div class="how-card__num">3</div>
+          <div class="how-card__icon">💬</div>
+          <div class="how-card__title">WhatsApp Farmer</div>
+          <div class="how-card__text">One button to message the farmer directly on WhatsApp. Negotiate price and discuss delivery.</div>
+        </div>
+        <div class="how-card">
+          <div class="how-card__num">4</div>
+          <div class="how-card__icon">🚚</div>
+          <div class="how-card__title">Receive Produce</div>
+          <div class="how-card__text">Collect or arrange delivery directly with the farmer. Pay the farmer, not a platform.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Testimonials ── -->
+  <section class="section" style="background:var(--parch-200)">
+    <div class="container">
+      <div class="section-head section-head--center">
+        <h2>What People Are Saying</h2>
+        <div class="section-divider" style="margin:auto;display:block;width:48px"></div>
+      </div>
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-card__quote">I listed my tomatoes on a Thursday evening and had 4 WhatsApp enquiries by Friday morning. This platform is a game changer for us small farmers.</div>
+          <div class="testimonial-card__author">
+            <div class="testimonial-avatar">EO</div>
+            <div><div class="testimonial-name">Emeka Okafor</div><div class="testimonial-role">Tomato Farmer · Anambra</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-card__quote">I used to pay ₦3,000 more per bag through a middleman. Now I buy directly from farmers in Kano and save big every month. Highly recommended!</div>
+          <div class="testimonial-card__author">
+            <div class="testimonial-avatar">TA</div>
+            <div><div class="testimonial-name">Taiwo Adeyemi</div><div class="testimonial-role">Restaurant Owner · Lagos</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-card__quote">Registering was so easy. I listed yam, groundnut and maize in one afternoon. Buyers contact me directly on WhatsApp — it couldn't be simpler.</div>
+          <div class="testimonial-card__author">
+            <div class="testimonial-avatar">FA</div>
+            <div><div class="testimonial-name">Fatima Aliyu</div><div class="testimonial-role">Mixed Crop Farmer · Kano</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA band ── -->
+  <section class="section">
+    <div class="container">
+      <div class="cta-band">
+        <div>
+          <h2>Ready to Sell Your Produce?</h2>
+          <p>Register your farm for free. List unlimited products. Reach buyers across Nigeria.</p>
+        </div>
+        <div style="display:flex;gap:.85rem;flex-wrap:wrap">
+          <a href="register-farmer.html" class="btn btn--ghost-light btn--lg">Register Farm</a>
+          <a href="list-product.html" class="btn btn--ochre btn--lg">List Produce</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    initLayout("home");
+    async function loadFeatured() {
+      const grid = document.getElementById("featuredGrid");
+      grid.innerHTML = Utils.skels(6);
+      try {
+        const { data } = await ProductsAPI.getAll({ page:1 });
+        grid.innerHTML = data.slice(0,6).map(Utils.card).join("") ||
+          `<div class="empty" style="grid-column:1/-1"><div class="empty__icon">🌱</div><h3>No products yet</h3><p>Be the first to list produce!</p></div>`;
+      } catch {
+        grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty__icon">⚠️</div><h3>Couldn't load products</h3><p>Check your connection or try again.</p><button class="btn btn--primary btn--sm" style="margin-top:1rem" onclick="loadFeatured()">Retry</button></div>`;
+      }
+    }
+    loadFeatured();
+  </script>
+</body>
+</html>
