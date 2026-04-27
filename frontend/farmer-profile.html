@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Farmer Profile — Farmers Connect</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .profile-hero {
+      background: linear-gradient(160deg, var(--forest-950), var(--forest-800));
+      padding: 3rem 1.5rem 0; color: var(--white);
+      position: relative; overflow: hidden;
+    }
+    .profile-hero::before { content:"";position:absolute;inset:0;opacity:.04;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:24px 24px; }
+    .profile-card {
+      max-width: 820px; margin: 0 auto; position: relative; z-index:1;
+      background: var(--white); border-radius: var(--r-xl) var(--r-xl) 0 0;
+      padding: 2.5rem 2.5rem 0;
+    }
+    @media(max-width:600px){.profile-card{padding:1.5rem 1.5rem 0;}}
+    .profile-top { display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap;padding-bottom:2rem;border-bottom:1px solid var(--border); }
+    .profile-avatar { width:80px;height:80px;border-radius:var(--r-lg);background:linear-gradient(135deg,var(--forest-600),var(--ochre-500));color:var(--white);font-family:var(--font-display);font-size:2rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--shadow-md); }
+    .profile-name { font-size:clamp(1.4rem,3vw,1.9rem);margin-bottom:.25rem; }
+    .profile-farm { font-size:1rem;color:var(--forest-600);font-weight:600;margin-bottom:.4rem; }
+    .profile-meta { display:flex;gap:1rem;flex-wrap:wrap;font-size:.83rem;color:var(--muted); }
+    .profile-meta span { display:flex;align-items:center;gap:.3rem; }
+    .verified-pill { background:var(--forest-50);color:var(--forest-700);border:1.5px solid var(--forest-300);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:.2rem .7rem;border-radius:var(--r-pill);display:inline-flex;align-items:center;gap:.3rem;margin-top:.5rem; }
+    .profile-body { max-width:820px;margin:0 auto;background:var(--white);padding:0 2.5rem 3rem;border-radius:0 0 var(--r-xl) var(--r-xl);box-shadow:var(--shadow-md); }
+    @media(max-width:600px){.profile-body{padding:0 1.5rem 2rem;}}
+  </style>
+</head>
+<body>
+  <script src="js/api.js"></script>
+
+  <div class="profile-hero">
+    <div class="profile-card" id="profileCard">
+      <div style="color:var(--muted);padding:3rem 0;text-align:center">Loading profile…</div>
+    </div>
+  </div>
+
+  <div style="background:var(--parch-200);padding:3rem 1.5rem">
+    <div style="max-width:820px;margin:0 auto" class="profile-body" id="profileBody">
+    </div>
+  </div>
+
+  <script>
+    initLayout("farmers");
+    const farmerId = Utils.getParam("id");
+    if (!farmerId) window.location.href="farmers.html";
+
+    async function load() {
+      try {
+        const { data:f } = await FarmersAPI.getById(farmerId);
+        const u = f.user;
+        const initials=(u?.name||"F").split(" ").map(n=>n[0]).join("").toUpperCase().slice(0,2);
+        const waLink=Utils.buildWhatsApp(u?.phone||"234000000000","your produce",u?.name||"the farmer");
+
+        document.title=`${u?.name||"Farmer"} — Farmers Connect`;
+
+        document.getElementById("profileCard").innerHTML=`
+          <div class="profile-top">
+            <div class="profile-avatar">${initials}</div>
+            <div style="flex:1">
+              <h1 class="profile-name">${u?.name||"Unknown Farmer"}</h1>
+              <div class="profile-farm">🏡 ${f.farmName}</div>
+              <div class="profile-meta">
+                <span>📍 ${f.state} State</span>
+                <span>📦 ${f.products?.length||0} product${f.products?.length!==1?"s":""} listed</span>
+              </div>
+              ${f.verified?`<div class="verified-pill">✓ Verified Farmer</div>`:""}
+            </div>
+            <a href="${waLink}" target="_blank" rel="noopener" class="btn btn--whatsapp btn--sm">💬 WhatsApp</a>
+          </div>`;
+
+        const products = f.products||[];
+        document.getElementById("profileBody").innerHTML=`
+          <div style="padding-top:2rem">
+            <div class="section-head">
+              <h2 style="font-size:1.4rem">Listed Produce</h2>
+              <div class="section-divider"></div>
+            </div>
+            ${products.length
+              ? `<div class="products-grid">${products.map(p=>Utils.card({...p,farmer:f})).join("")}</div>`
+              : `<div class="empty"><div class="empty__icon">🌱</div><h3>No active listings</h3><p>This farmer hasn't listed any produce yet.</p></div>`}
+          </div>`;
+      } catch(err) {
+        document.getElementById("profileCard").innerHTML=`<div class="empty"><div class="empty__icon">⚠️</div><h3>Profile not found</h3><p>${err.message}</p><a href="farmers.html" class="btn btn--primary" style="margin-top:1rem">Back to Farmers</a></div>`;
+        document.getElementById("profileBody").innerHTML="";
+      }
+    }
+    load();
+  </script>
+</body>
+</html>

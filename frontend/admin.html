@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Farmers Connect</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════ LOGIN ═══════════════════════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🌿 Farmers <span>Connect</span></div>
+    <div class="login-sub">Admin Panel · Restricted Access Only</div>
+    <form onsubmit="doLogin(event)">
+      <label class="login-label" for="lu">Username</label>
+      <input class="login-input" type="text"     id="lu" placeholder="admin" autocomplete="username" required />
+      <label class="login-label" for="lp">Password</label>
+      <input class="login-input" type="password" id="lp" placeholder="••••••••" autocomplete="current-password" required />
+      <button class="login-btn" id="loginBtn" type="submit">Sign In →</button>
+      <div class="login-error" id="loginErr"></div>
+    </form>
+    <p style="margin-top:1.5rem;font-size:.72rem;color:#bbb;text-align:center">
+      Default: <code>admin</code> / <code>farmersconnect2024</code><br/>
+      Set <code>ADMIN_USERNAME</code> + <code>ADMIN_PASSWORD</code> env vars on Render
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════ APP ═══════════════════════ -->
+<div class="admin-app" id="adminApp">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      🌿 Farmers <span>Connect</span>
+      <div class="sb-logo-sub">Admin Panel</div>
+    </div>
+
+    <div class="sb-section">Overview</div>
+    <div class="sb-nav">
+      <button class="sb-item active" onclick="show('dashboard',this)"><span class="sb-item__icon">📊</span>Dashboard</button>
+    </div>
+
+    <div class="sb-section">Listings</div>
+    <div class="sb-nav">
+      <button class="sb-item" onclick="show('products',this)"><span class="sb-item__icon">🌾</span>All Products<span class="sb-badge" id="bdgAll">0</span></button>
+      <button class="sb-item" onclick="show('pending',this)"><span class="sb-item__icon">⏳</span>Pending Review<span class="sb-badge" id="bdgPending">0</span></button>
+      <button class="sb-item" onclick="show('flagged',this)"><span class="sb-item__icon">🚩</span>Flagged</button>
+    </div>
+
+    <div class="sb-section">Users</div>
+    <div class="sb-nav">
+      <button class="sb-item" onclick="show('farmers',this)"><span class="sb-item__icon">🧑‍🌾</span>Farmers</button>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" id="sbAvatar">A</div>
+        <div><div class="sb-user-name" id="sbName">Admin</div><div class="sb-user-role">Super Admin</div></div>
+      </div>
+      <button class="sb-logout" onclick="logout()">⬅ Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <button class="mob-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <span class="topbar__title" id="topTitle">Dashboard</span>
+      </div>
+      <div class="topbar__right">
+        <span id="topDate"></span>
+        <a href="index.html" target="_blank" class="topbar__link">↗ View Site</a>
+      </div>
+    </div>
+
+    <!-- ── DASHBOARD ── -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="stats-row">
+        <div class="stat-card stat--green"><div class="stat-card__label">Total Products</div><div class="stat-card__value" id="s-total">—</div><div class="stat-card__sub" id="s-week">— this week</div><div class="stat-card__icon">🌾</div></div>
+        <div class="stat-card stat--terra"><div class="stat-card__label">Pending Review</div><div class="stat-card__value" id="s-pend">—</div><div class="stat-card__sub">Awaiting approval</div><div class="stat-card__icon">⏳</div></div>
+        <div class="stat-card stat--blue"><div class="stat-card__label">Total Farmers</div><div class="stat-card__value" id="s-farm">—</div><div class="stat-card__sub" id="s-verified">— verified</div><div class="stat-card__icon">🧑‍🌾</div></div>
+        <div class="stat-card stat--red"><div class="stat-card__label">Flagged</div><div class="stat-card__value" id="s-flag">—</div><div class="stat-card__sub">Need review</div><div class="stat-card__icon">🚩</div></div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Products by Category</h3>
+          <div id="catChart" style="color:#aaa;font-size:.83rem">Loading…</div>
+        </div>
+        <div class="chart-card">
+          <h3>Top States</h3>
+          <div id="stateChart" style="color:#aaa;font-size:.83rem">Loading…</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.1rem">
+        <div class="tbl-card">
+          <div class="tbl-header"><h3>⚡ Quick Actions</h3></div>
+          <div style="padding:1.1rem;display:flex;flex-direction:column;gap:.65rem">
+            <button class="act act-approve" style="justify-content:flex-start;padding:.6rem 1rem;font-size:.845rem" onclick="show('pending',document.querySelector('[onclick*=pending]'))">⏳ Review Pending Listings</button>
+            <button class="act act-flag"    style="justify-content:flex-start;padding:.6rem 1rem;font-size:.845rem" onclick="show('flagged',document.querySelector('[onclick*=flagged]'))">🚩 Review Flagged Content</button>
+            <button class="act act-verify"  style="justify-content:flex-start;padding:.6rem 1rem;font-size:.845rem" onclick="show('farmers',document.querySelector('[onclick*=farmers]'))">🧑‍🌾 Verify Farmers</button>
+            <a href="shop.html" target="_blank" class="act act-verify" style="justify-content:flex-start;padding:.6rem 1rem;font-size:.845rem">↗ View Live Marketplace</a>
+          </div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-header"><h3>🕐 Recent Activity</h3></div>
+          <div id="actFeed" style="color:#aaa;font-size:.83rem;padding:1rem">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ALL PRODUCTS ── -->
+    <div class="panel" id="panel-products">
+      <div class="tbl-card">
+        <div class="tbl-header">
+          <h3>All Listings</h3>
+          <div class="filter-row">
+            <div class="a-search"><input type="text" id="pSearch" placeholder="Search products…" oninput="debP(this.value)" /><button onclick="loadProds()">Go</button></div>
+            <select class="a-select" id="pStatus" onchange="loadProds()"><option value="">All Status</option><option value="PENDING">Pending</option><option value="APPROVED">Approved</option><option value="REJECTED">Rejected</option><option value="FLAGGED">Flagged</option></select>
+            <select class="a-select" id="pCat" onchange="loadProds()"><option value="">All Categories</option><option value="GRAINS">Grains</option><option value="VEGETABLES">Vegetables</option><option value="FRUITS">Fruits</option><option value="TUBERS">Tubers</option><option value="LEGUMES">Legumes</option><option value="LIVESTOCK">Livestock</option><option value="DAIRY">Dairy</option></select>
+          </div>
+        </div>
+        <div class="tbl-wrap"><table><thead><tr><th>Product</th><th>Farmer</th><th>Price</th><th>Category</th><th>Status</th><th>Listed</th><th>Actions</th></tr></thead><tbody id="pTbody"><tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#aaa">Loading…</td></tr></tbody></table></div>
+        <div class="tbl-pager" id="pPager"></div>
+      </div>
+    </div>
+
+    <!-- ── PENDING ── -->
+    <div class="panel" id="panel-pending">
+      <div class="tbl-card">
+        <div class="tbl-header"><h3>⏳ Pending Review</h3><span style="font-size:.8rem;color:#aaa">Not yet visible to buyers</span></div>
+        <div class="tbl-wrap"><table><thead><tr><th>Product</th><th>Farmer</th><th>Price</th><th>Category</th><th>Listed</th><th>Actions</th></tr></thead><tbody id="pendTbody"><tr><td colspan="6" style="text-align:center;padding:2.5rem;color:#aaa">Loading…</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ── FLAGGED ── -->
+    <div class="panel" id="panel-flagged">
+      <div class="tbl-card">
+        <div class="tbl-header"><h3>🚩 Flagged Listings</h3><span style="font-size:.8rem;color:#aaa">Reported content needing review</span></div>
+        <div class="tbl-wrap"><table><thead><tr><th>Product</th><th>Farmer</th><th>Price</th><th>Listed</th><th>Actions</th></tr></thead><tbody id="flagTbody"><tr><td colspan="5" style="text-align:center;padding:2.5rem;color:#aaa">Loading…</td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ── FARMERS ── -->
+    <div class="panel" id="panel-farmers">
+      <div class="tbl-card">
+        <div class="tbl-header">
+          <h3>Farmer Accounts</h3>
+          <div class="filter-row">
+            <div class="a-search"><input type="text" id="fSearch" placeholder="Search farmers…" oninput="debF(this.value)" /><button onclick="loadFarmers()">Go</button></div>
+            <select class="a-select" id="fVerified" onchange="loadFarmers()"><option value="">All Farmers</option><option value="false">Unverified</option><option value="true">Verified</option></select>
+          </div>
+        </div>
+        <div class="tbl-wrap"><table><thead><tr><th>Farmer</th><th>Farm Name</th><th>State</th><th>Phone</th><th>Products</th><th>Verified</th><th>Joined</th><th>Actions</th></tr></thead><tbody id="fTbody"><tr><td colspan="8" style="text-align:center;padding:2.5rem;color:#aaa">Loading…</td></tr></tbody></table></div>
+        <div class="tbl-pager" id="fPager"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="mTitle">Confirm</h3>
+    <p  id="mBody">Are you sure?</p>
+    <div class="modal-btns">
+      <button class="m-btn m-btn-cancel"  onclick="closeModal()">Cancel</button>
+      <button class="m-btn" id="mConfirm" onclick="mFn()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="a-toast" id="aToast"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const API = "https://farmers-connect-sn3y.onrender.com";
+// DEV: const API = "http://localhost:5000/api";
+
+let token = sessionStorage.getItem("fc_admin_token") || "";
+let user  = JSON.parse(sessionStorage.getItem("fc_admin_user") || "{}");
+let mFn   = () => {};
+
+// ── INIT ────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("topDate").textContent =
+    new Date().toLocaleDateString("en-NG", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+  token ? showApp() : (document.getElementById("loginScreen").style.display = "flex");
+});
+
+// ── AUTH ────────────────────────────────────────────────
+async function doLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById("loginBtn");
+  const err = document.getElementById("loginErr");
+  btn.disabled = true; btn.textContent = "Signing in…"; err.classList.remove("show");
+  try {
+    const res  = await fetch(`${API}/admin/login`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ username:document.getElementById("lu").value.trim(), password:document.getElementById("lp").value }) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Invalid credentials");
+    token = data.token; user = data.admin;
+    sessionStorage.setItem("fc_admin_token", token);
+    sessionStorage.setItem("fc_admin_user", JSON.stringify(user));
+    showApp();
+  } catch(er) {
+    err.textContent = er.message; err.classList.add("show");
+    btn.disabled = false; btn.textContent = "Sign In →";
+  }
+}
+
+function showApp() {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("adminApp").classList.add("visible");
+  document.getElementById("sbName").textContent   = user.username || "Admin";
+  document.getElementById("sbAvatar").textContent = (user.username || "A")[0].toUpperCase();
+  loadDashboard();
+}
+
+function logout() {
+  sessionStorage.clear(); token = "";
+  document.getElementById("adminApp").classList.remove("visible");
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("lp").value = "";
+}
+
+// ── API HELPER ──────────────────────────────────────────
+async function aFetch(endpoint, opts = {}) {
+  const res  = await fetch(`${API}/admin${endpoint}`, { headers:{"Content-Type":"application/json","x-admin-token":token,...opts.headers}, ...opts });
+  const data = await res.json();
+  if (res.status === 401) { logout(); throw new Error("Session expired"); }
+  if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
+  return data;
+}
+
+// ── NAVIGATION ──────────────────────────────────────────
+const titles = { dashboard:"Dashboard", products:"All Products", pending:"Pending Review", flagged:"Flagged Listings", farmers:"Farmer Accounts" };
+
+function show(name, btn) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".sb-item").forEach(n => n.classList.remove("active"));
+  document.getElementById(`panel-${name}`).classList.add("active");
+  if (btn) btn.classList.add("active");
+  document.getElementById("topTitle").textContent = titles[name] || name;
+  document.getElementById("sidebar").classList.remove("open");
+  const loaders = { dashboard:loadDashboard, products:loadProds, pending:loadPending, flagged:loadFlagged, farmers:loadFarmers };
+  loaders[name]?.();
+}
+
+// ── DASHBOARD ───────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const { data } = await aFetch("/stats");
+    const { products:p, farmers:f, byCategory, byState } = data;
+    set("s-total",   p.total);     set("s-pend", p.pending);
+    set("s-farm",    f.total);     set("s-flag", p.flagged);
+    set("s-week",    `+${p.thisWeek} this week`);
+    set("s-verified", `${f.verified} verified`);
+    document.getElementById("bdgPending").textContent = p.pending;
+    document.getElementById("bdgAll").textContent     = p.total;
+
+    const max = Math.max(...byCategory.map(c=>c.count), 1);
+    document.getElementById("catChart").innerHTML = byCategory.length
+      ? byCategory.map(c=>`<div class="bar-row"><span class="bar-label">${tc(c.category)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(c.count/max*100)}%"></div></div><span class="bar-num">${c.count}</span></div>`).join("")
+      : `<div style="color:#aaa;font-size:.82rem">No data yet</div>`;
+
+    const pal = ["#245224","#3a8a3a","#7ec27e","#cc9400","#e8ac14","#f5c842"];
+    document.getElementById("stateChart").innerHTML = byState.length
+      ? byState.map((s,i)=>`<div class="donut-row"><div class="donut-dot" style="background:${pal[i%pal.length]}"></div><span style="flex:1;color:#444;font-size:.8rem">${s.state}</span><span class="donut-val">${s.count}</span></div>`).join("")
+      : `<div style="color:#aaa;font-size:.82rem">No data yet</div>`;
+
+    const { data: recent } = await aFetch("/products?limit=6");
+    document.getElementById("actFeed").innerHTML = recent.length
+      ? recent.map(p=>`<div class="act-feed-item"><div class="act-dot ${p.status==="APPROVED"?"act-dot-g":p.status==="FLAGGED"?"act-dot-r":"act-dot-a"}">${p.status==="APPROVED"?"✓":p.status==="FLAGGED"?"🚩":"⏳"}</div><div><div class="act-text"><strong>${p.name}</strong> listed by ${p.farmer?.user?.name||"unknown"}</div><div class="act-time">${ago(p.createdAt)} · <span class="pill ${pillCls(p.status)}">${p.status}</span></div></div></div>`).join("")
+      : `<div style="padding:1rem;color:#aaa;font-size:.83rem">No activity yet</div>`;
+  } catch(er) { toast(er.message,"error"); }
+}
+
+// ── PRODUCTS ─────────────────────────────────────────────
+let pPage=1, pSrch="", pDb;
+function debP(v){ clearTimeout(pDb); pDb=setTimeout(()=>{ pSrch=v; pPage=1; loadProds(); },380); }
+
+async function loadProds() {
+  const tbody = document.getElementById("pTbody");
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#aaa">Loading…</td></tr>`;
+  try {
+    const ps = new URLSearchParams({ page:pPage, limit:15 });
+    if (document.getElementById("pStatus").value) ps.set("status", document.getElementById("pStatus").value);
+    if (document.getElementById("pCat").value)    ps.set("category", document.getElementById("pCat").value);
+    if (pSrch) ps.set("search", pSrch);
+    const { data, pagination } = await aFetch(`/products?${ps}`);
+    tbody.innerHTML = data.length ? data.map(p=>`
+      <tr>
+        <td><div class="prod-info"><div class="prod-thumb">${p.imageUrl?`<img src="${p.imageUrl}" alt="" />`:"🌾"}</div><div><div class="prod-name">${p.name}</div><div class="prod-cat">${tc(p.category)}</div></div></div></td>
+        <td><div class="f-info"><div class="f-avatar">${(p.farmer?.user?.name||"?")[0].toUpperCase()}</div><div style="font-size:.82rem">${p.farmer?.user?.name||"—"}<br/><span style="color:#aaa">${p.farmer?.state||""}</span></div></div></td>
+        <td style="font-weight:600;white-space:nowrap">${naira(p.price)}<br/><span style="font-size:.7rem;color:#aaa">/${p.unit}</span></td>
+        <td><span class="pill pill-gray">${tc(p.category)}</span></td>
+        <td><span class="pill ${pillCls(p.status)}">${p.status}</span></td>
+        <td style="font-size:.78rem;color:#aaa;white-space:nowrap">${ago(p.createdAt)}</td>
+        <td><div style="display:flex;gap:.3rem;flex-wrap:wrap">
+          ${p.status!=="APPROVED" ? `<button class="act act-approve" onclick="updProd('${p.id}','APPROVED','${esc(p.name)}')">✓</button>` : ""}
+          ${p.status!=="REJECTED" ? `<button class="act act-reject"  onclick="updProd('${p.id}','REJECTED','${esc(p.name)}')">✕</button>` : ""}
+          ${p.status!=="FLAGGED"  ? `<button class="act act-flag"    onclick="updProd('${p.id}','FLAGGED','${esc(p.name)}')">🚩</button>` : ""}
+          <button class="act act-delete" onclick="confirmDel('product','${p.id}','${esc(p.name)}')">🗑</button>
+        </div></td>
+      </tr>`).join("")
+    : `<tr><td colspan="7"><div style="text-align:center;padding:3rem;color:#aaa">No products found</div></td></tr>`;
+    renderPager("pPager", pagination, p=>{ pPage=p; loadProds(); });
+  } catch(er) { tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;color:#dc2626;padding:2rem">${er.message}</td></tr>`; }
+}
+
+// ── PENDING ──────────────────────────────────────────────
+async function loadPending() {
+  const tbody = document.getElementById("pendTbody");
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:#aaa">Loading…</td></tr>`;
+  try {
+    const { data } = await aFetch("/products?status=PENDING&limit=50");
+    tbody.innerHTML = data.length ? data.map(p=>`
+      <tr>
+        <td><div class="prod-info"><div class="prod-thumb">${p.imageUrl?`<img src="${p.imageUrl}" alt="" />`:"🌾"}</div><div><div class="prod-name">${p.name}</div><div class="prod-cat" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.description.slice(0,55)}…</div></div></div></td>
+        <td style="font-size:.82rem">${p.farmer?.user?.name||"—"}<br/><span style="color:#aaa">📍 ${p.farmer?.state||""}</span></td>
+        <td style="font-weight:600">${naira(p.price)}<span style="font-weight:400;font-size:.72rem;color:#aaa"> /${p.unit}</span></td>
+        <td><span class="pill pill-gray">${tc(p.category)}</span></td>
+        <td style="font-size:.78rem;color:#aaa">${ago(p.createdAt)}</td>
+        <td><div style="display:flex;gap:.3rem">
+          <button class="act act-approve" onclick="updProd('${p.id}','APPROVED','${esc(p.name)}')">✓ Approve</button>
+          <button class="act act-reject"  onclick="updProd('${p.id}','REJECTED','${esc(p.name)}')">✕ Reject</button>
+          <button class="act act-flag"    onclick="updProd('${p.id}','FLAGGED','${esc(p.name)}')">🚩 Flag</button>
+        </div></td>
+      </tr>`).join("")
+    : `<tr><td colspan="6"><div style="text-align:center;padding:3rem"><div style="font-size:3rem;margin-bottom:.75rem">🎉</div><div style="font-weight:700;color:#555">All caught up! No pending listings.</div></div></td></tr>`;
+  } catch(er) { tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:2rem">${er.message}</td></tr>`; }
+}
+
+// ── FLAGGED ──────────────────────────────────────────────
+async function loadFlagged() {
+  const tbody = document.getElementById("flagTbody");
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2.5rem;color:#aaa">Loading…</td></tr>`;
+  try {
+    const { data } = await aFetch("/products?status=FLAGGED&limit=50");
+    tbody.innerHTML = data.length ? data.map(p=>`
+      <tr style="background:#fffbeb">
+        <td><div class="prod-info"><div class="prod-thumb">${p.imageUrl?`<img src="${p.imageUrl}" alt="" />`:"🌾"}</div><div><div class="prod-name">${p.name}</div><div class="prod-cat">${p.description.slice(0,60)}…</div></div></div></td>
+        <td style="font-size:.82rem">${p.farmer?.user?.name||"—"} · ${p.farmer?.state||""}</td>
+        <td style="font-weight:600">${naira(p.price)}</td>
+        <td style="font-size:.78rem;color:#aaa">${ago(p.createdAt)}</td>
+        <td><div style="display:flex;gap:.3rem">
+          <button class="act act-approve" onclick="updProd('${p.id}','APPROVED','${esc(p.name)}')">✓ Approve</button>
+          <button class="act act-delete"  onclick="confirmDel('product','${p.id}','${esc(p.name)}')">🗑 Delete</button>
+        </div></td>
+      </tr>`).join("")
+    : `<tr><td colspan="5"><div style="text-align:center;padding:3rem"><div style="font-size:3rem;margin-bottom:.75rem">✅</div><div style="font-weight:700;color:#555">No flagged listings</div></div></td></tr>`;
+  } catch(er) { tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:2rem">${er.message}</td></tr>`; }
+}
+
+// ── FARMERS ──────────────────────────────────────────────
+let fPage=1, fSrch="", fDb;
+function debF(v){ clearTimeout(fDb); fDb=setTimeout(()=>{ fSrch=v; fPage=1; loadFarmers(); },380); }
+
+async function loadFarmers() {
+  const tbody = document.getElementById("fTbody");
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:#aaa">Loading…</td></tr>`;
+  try {
+    const ps = new URLSearchParams({ page:fPage, limit:15 });
+    if (document.getElementById("fVerified").value) ps.set("verified", document.getElementById("fVerified").value);
+    if (fSrch) ps.set("search", fSrch);
+    const { data, pagination } = await aFetch(`/farmers?${ps}`);
+    tbody.innerHTML = data.length ? data.map(f=>`
+      <tr>
+        <td><div class="f-info"><div class="f-avatar">${(f.user?.name||"?")[0].toUpperCase()}</div><div style="font-weight:600;font-size:.845rem">${f.user?.name||"—"}</div></div></td>
+        <td style="font-size:.845rem">${f.farmName}</td>
+        <td><span class="pill pill-gray">${f.state}</span></td>
+        <td style="font-size:.8rem;color:#555">${f.user?.phone||"—"}</td>
+        <td style="text-align:center;font-weight:600">${f._count?.products||0}</td>
+        <td>${f.verified?`<span class="pill pill-green">✓ Verified</span>`:`<span class="pill pill-amber">Unverified</span>`}</td>
+        <td style="font-size:.75rem;color:#aaa;white-space:nowrap">${ago(f.user?.createdAt||f.createdAt)}</td>
+        <td><div style="display:flex;gap:.3rem;flex-wrap:wrap">
+          ${f.verified
+            ? `<button class="act act-flag"   onclick="togVerify('${f.id}',false,'${esc(f.farmName)}')">✕ Unverify</button>`
+            : `<button class="act act-verify" onclick="togVerify('${f.id}',true,'${esc(f.farmName)}')">✓ Verify</button>`}
+          <button class="act act-delete" onclick="confirmDel('farmer','${f.id}','${esc(f.farmName)}')">🗑</button>
+        </div></td>
+      </tr>`).join("")
+    : `<tr><td colspan="8"><div style="text-align:center;padding:3rem;color:#aaa">No farmers found</div></td></tr>`;
+    renderPager("fPager", pagination, p=>{ fPage=p; loadFarmers(); });
+  } catch(er) { tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:#dc2626;padding:2rem">${er.message}</td></tr>`; }
+}
+
+// ── ACTIONS ──────────────────────────────────────────────
+function updProd(id, status, name) {
+  const cls  = status==="APPROVED" ? "m-btn-approve" : "m-btn-confirm";
+  const lbl  = {APPROVED:"Approve",REJECTED:"Reject",FLAGGED:"Flag"}[status];
+  openModal(`${lbl} listing?`, `Are you sure you want to ${lbl.toLowerCase()} "<strong>${name}</strong>"?`, cls, lbl, async()=>{
+    try {
+      await aFetch(`/products/${id}/status`, { method:"PATCH", body:JSON.stringify({status}) });
+      toast(`"${name}" ${status.toLowerCase()}`, "success");
+      refreshActive(); refreshStats();
+    } catch(er){ toast(er.message,"error"); }
+  });
+}
+
+function togVerify(id, verified, farmName) {
+  const lbl = verified ? "Verify" : "Unverify";
+  openModal(`${lbl} farm?`, `Are you sure you want to ${lbl.toLowerCase()} "<strong>${farmName}</strong>"?`, verified?"m-btn-approve":"m-btn-confirm", lbl, async()=>{
+    try {
+      await aFetch(`/farmers/${id}/verify`, { method:"PATCH", body:JSON.stringify({verified}) });
+      toast(`${farmName} ${verified?"verified ✓":"unverified"}`, "success");
+      loadFarmers();
+    } catch(er){ toast(er.message,"error"); }
+  });
+}
+
+function confirmDel(type, id, name) {
+  openModal(`Delete ${type}?`, `Permanently delete "<strong>${name}</strong>"${type==="farmer"?" and all their listings":""}? This cannot be undone.`, "m-btn-confirm", "Delete", async()=>{
+    try {
+      await aFetch(`/${type==="farmer"?"farmers":"products"}/${id}`, { method:"DELETE" });
+      toast(`"${name}" deleted`, "success");
+      refreshActive(); refreshStats();
+    } catch(er){ toast(er.message,"error"); }
+  });
+}
+
+async function refreshStats() {
+  try {
+    const { data } = await aFetch("/stats");
+    document.getElementById("bdgPending").textContent = data.products.pending;
+    document.getElementById("bdgAll").textContent     = data.products.total;
+    set("s-pend", data.products.pending);
+    set("s-flag", data.products.flagged);
+  } catch{}
+}
+
+function refreshActive() {
+  const active = document.querySelector(".panel.active")?.id;
+  if (active==="panel-products") loadProds();
+  if (active==="panel-pending")  loadPending();
+  if (active==="panel-flagged")  loadFlagged();
+  if (active==="panel-farmers")  loadFarmers();
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function openModal(title, body, cls, label, fn) {
+  document.getElementById("mTitle").textContent = title;
+  document.getElementById("mBody").innerHTML    = body;
+  const btn = document.getElementById("mConfirm");
+  btn.className   = `m-btn ${cls}`;
+  btn.textContent = label;
+  mFn = async()=>{ closeModal(); await fn(); };
+  document.getElementById("modalBg").classList.add("open");
+}
+function closeModal() { document.getElementById("modalBg").classList.remove("open"); }
+document.getElementById("modalBg").addEventListener("click", e=>{ if(e.target===e.currentTarget) closeModal(); });
+
+// ── PAGINATION ─────────────────────────────────────────────
+function renderPager(id, pg, cb) {
+  const el = document.getElementById(id);
+  if (!pg||pg.totalPages<=1) { el.innerHTML=""; return; }
+  const { page:cur, totalPages } = pg;
+  let h = `<button class="pg-btn" onclick="(${cb.toString()})(${cur-1})" ${cur===1?"disabled":""}>‹</button>`;
+  for(let i=1;i<=totalPages;i++) h+=`<button class="pg-btn ${i===cur?"active":""}" onclick="(${cb.toString()})(${i})">${i}</button>`;
+  h+=`<button class="pg-btn" onclick="(${cb.toString()})(${cur+1})" ${cur===totalPages?"disabled":""}>›</button>`;
+  el.innerHTML=h;
+}
+
+// ── TOAST ──────────────────────────────────────────────────
+let tTimer;
+function toast(msg, type="success") {
+  clearTimeout(tTimer);
+  const el = document.getElementById("aToast");
+  el.textContent = msg; el.className=`a-toast ${type} show`;
+  tTimer = setTimeout(()=>el.classList.remove("show"), 3500);
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+const set  = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+const naira = n => new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",minimumFractionDigits:0}).format(n);
+const tc    = s => (s||"").toLowerCase().replace(/_/g," ").split(" ").map(w=>w[0].toUpperCase()+w.slice(1)).join(" ");
+const esc   = s => (s||"").replace(/'/g,"\\'").replace(/"/g,"&quot;");
+const ago   = d => { if(!d) return "—"; const m=Math.floor((Date.now()-new Date(d))/60000); if(m<60) return `${m}m ago`; const h=Math.floor(m/60); if(h<24) return `${h}h ago`; const dy=Math.floor(h/24); return dy<30?`${dy}d ago`:new Date(d).toLocaleDateString("en-NG"); };
+const pillCls = s => ({APPROVED:"pill-green",PENDING:"pill-amber",REJECTED:"pill-gray",FLAGGED:"pill-red"}[s]||"pill-gray");
+
+// Close sidebar on outside click (mobile)
+document.addEventListener("click", e=>{
+  const sb = document.getElementById("sidebar");
+  if (window.innerWidth<=768 && !sb.contains(e.target) && !e.target.classList.contains("mob-toggle")) sb.classList.remove("open");
+});
+</script>
+</body>
+</html>

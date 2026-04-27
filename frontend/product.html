@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product — Farmers Connect</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .back-link { display:inline-flex;align-items:center;gap:.4rem;color:var(--forest-600);font-weight:600;font-size:.875rem;margin-bottom:2rem;transition:gap var(--t); }
+    .back-link:hover { gap:.7rem; }
+    .detail { display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:start; }
+    @media(max-width:800px){ .detail{grid-template-columns:1fr;gap:2rem;} }
+    .detail__img { border-radius:var(--r-xl);overflow:hidden;aspect-ratio:4/3;background:var(--parch-200);display:flex;align-items:center;justify-content:center;font-size:7rem;box-shadow:var(--shadow-lg); }
+    .detail__img img { width:100%;height:100%;object-fit:cover; }
+    .detail__name { font-size:clamp(1.8rem,4vw,2.4rem);margin:.5rem 0 .4rem; }
+    .detail__posted { font-size:.8rem;color:var(--muted); }
+    .price-block { background:linear-gradient(135deg,var(--forest-50),var(--parch-200));border:1px solid var(--forest-100);border-radius:var(--r-lg);padding:1.1rem 1.4rem;margin:1.3rem 0;display:flex;align-items:baseline;gap:.4rem; }
+    .price-block__price { font-family:var(--font-display);font-size:2.4rem;font-weight:800;color:var(--forest-700); }
+    .price-block__unit  { color:var(--muted);font-size:.95rem; }
+    .detail__desc { color:var(--ink-2);line-height:1.85;margin-bottom:1.5rem;font-size:.95rem; }
+    .meta-grid { display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin:1.3rem 0; }
+    .meta-box { background:var(--parch-100);border:1px solid var(--border);border-radius:var(--r-md);padding:.75rem 1rem; }
+    .meta-box__label { font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:.2rem; }
+    .meta-box__value { font-size:.9rem;font-weight:600;color:var(--ink); }
+    .farmer-card { background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:1.1rem;display:flex;align-items:center;gap:1rem;margin:1.3rem 0;transition:box-shadow var(--t); }
+    .farmer-card:hover { box-shadow:var(--shadow-sm); }
+    .farmer-avatar { width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--forest-200,#a8d8a8),var(--forest-100));color:var(--forest-700);font-family:var(--font-display);font-size:1.2rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .farmer-card__name { font-weight:700;color:var(--ink); }
+    .farmer-card__farm { font-size:.83rem;color:var(--forest-600);font-weight:500; }
+    .farmer-card__loc  { font-size:.78rem;color:var(--muted);margin-top:.1rem; }
+    .safety-note { background:var(--ochre-50);border:1px solid var(--ochre-200,#f5d88a);border-radius:var(--r-sm);padding:.75rem 1rem;font-size:.8rem;color:var(--ochre-700);display:flex;gap:.5rem;margin:.85rem 0; }
+    .cta-stack { display:flex;flex-direction:column;gap:.75rem; }
+  </style>
+</head>
+<body>
+  <script src="js/api.js"></script>
+
+  <main class="section">
+    <div class="container">
+      <a href="javascript:history.back()" class="back-link">← Back to listings</a>
+      <div id="content">
+        <div class="detail">
+          <div class="skeleton" style="aspect-ratio:4/3;border-radius:var(--r-xl)"></div>
+          <div style="display:flex;flex-direction:column;gap:1rem">
+            <div class="skeleton" style="height:20px;width:80px"></div>
+            <div class="skeleton" style="height:50px"></div>
+            <div class="skeleton" style="height:80px;border-radius:var(--r-lg)"></div>
+            <div class="skeleton" style="height:60px"></div>
+            <div class="skeleton" style="height:54px;border-radius:var(--r-pill)"></div>
+          </div>
+        </div>
+      </div>
+      <div id="related" style="margin-top:5rem;display:none">
+        <div class="section-head"><h2>More Produce</h2><div class="section-divider"></div></div>
+        <div class="products-grid" id="relatedGrid"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    initLayout("shop");
+    const id = Utils.getParam("id");
+    if (!id) window.location.href="shop.html";
+
+    async function load() {
+      try {
+        const { data:p } = await ProductsAPI.getById(id);
+        document.title = `${p.name} — Farmers Connect`;
+        const f=p.farmer, u=f?.user;
+        const initials=(u?.name||"F").split(" ").map(n=>n[0]).join("").toUpperCase().slice(0,2);
+        const waLink=Utils.buildWhatsApp(u?.phone||"234000000000",p.name,u?.name||"the farmer");
+        const color=Utils.catColor[p.category]||"#888";
+        const emoji=Utils.catEmoji[p.category]||"🌿";
+
+        document.getElementById("content").innerHTML = `
+          <div class="detail">
+            <div>
+              <div class="detail__img">
+                ${p.imageUrl?`<img src="${p.imageUrl}" alt="${p.name}" />`:`<span style="font-size:7rem">${emoji}</span>`}
+              </div>
+            </div>
+            <div>
+              <span class="badge" style="background:${color}">${Utils.titleCase(p.category)}</span>
+              <h1 class="detail__name">${p.name}</h1>
+              <p class="detail__posted">Listed ${Utils.timeAgo(p.createdAt)} by ${u?.name||"Unknown Farmer"}</p>
+              <div class="price-block">
+                <span class="price-block__price">${Utils.formatNaira(p.price)}</span>
+                <span class="price-block__unit">/ ${p.unit}</span>
+              </div>
+              <p class="detail__desc">${p.description}</p>
+              <div class="meta-grid">
+                <div class="meta-box"><div class="meta-box__label">Category</div><div class="meta-box__value">${Utils.titleCase(p.category)}</div></div>
+                <div class="meta-box"><div class="meta-box__label">Unit</div><div class="meta-box__value">${p.unit}</div></div>
+                <div class="meta-box"><div class="meta-box__label">Location</div><div class="meta-box__value">📍 ${f?.state||"Nigeria"}</div></div>
+                <div class="meta-box"><div class="meta-box__label">Status</div><div class="meta-box__value" style="color:var(--forest-600)">✓ Available</div></div>
+              </div>
+              <div class="farmer-card">
+                <div class="farmer-avatar">${initials}</div>
+                <div>
+                  <div class="farmer-card__name">${u?.name||"Unknown"}</div>
+                  <div class="farmer-card__farm">🏡 ${f?.farmName||"—"}</div>
+                  <div class="farmer-card__loc">📍 ${f?.state||"—"} ${f?.verified?"· <span style='color:var(--forest-600);font-weight:600'>✓ Verified</span>":""}</div>
+                </div>
+              </div>
+              <div class="cta-stack">
+                <a href="${waLink}" target="_blank" rel="noopener" class="btn btn--whatsapp btn--full">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.114.553 4.103 1.523 5.832L.043 23.07a.883.883 0 001.065 1.08l5.39-1.43A11.956 11.956 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.372l-.36-.214-3.726.988.996-3.635-.235-.373A9.818 9.818 0 1112 21.818z"/></svg>
+                  Contact Farmer on WhatsApp
+                </a>
+                <div class="safety-note">⚠️ <span>Inspect goods before payment. Farmers Connect does not process transactions — deal directly with the farmer.</span></div>
+                <a href="shop.html" class="btn btn--outline btn--full">← Continue Browsing</a>
+              </div>
+            </div>
+          </div>`;
+        loadRelated(p.category, p.id);
+      } catch(err) {
+        document.getElementById("content").innerHTML=`<div class="empty"><div class="empty__icon">⚠️</div><h3>Product not found</h3><p>${err.message}</p><a href="shop.html" class="btn btn--primary" style="margin-top:1rem">Browse Products</a></div>`;
+      }
+    }
+
+    async function loadRelated(category,excludeId) {
+      try {
+        const { data } = await ProductsAPI.getAll({ category });
+        const rel = data.filter(p=>p.id!==excludeId).slice(0,3);
+        if (!rel.length) return;
+        document.getElementById("related").style.display="block";
+        document.getElementById("relatedGrid").innerHTML=rel.map(Utils.card).join("");
+      } catch{}
+    }
+    load();
+  </script>
+</body>
+</html>
